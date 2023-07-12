@@ -1,0 +1,48 @@
+- name: Quiz-3
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Install software-properties-common
+      apt:
+        name: software-properties-common
+        state: present
+
+    - name: apt key nginx
+      ansible.builtin.apt_key:
+        url: https://nginx.org/keys/nginx_signing.key
+        state: present
+
+    - name: apt key mariadb
+      ansible.builtin.apt_key:
+        url: https://mariadb.org/mariadb_release_signing_key.asc
+        state: present
+
+    - name: Configure Nginx
+      template: src=nginx.list.j2 dest=/etc/apt/sources.list.d/nginx.list
+
+    - name: Configure Mariadb
+      template: src=mariadb.list.j2 dest=/etc/apt/sources.list.d/mariadb.list
+
+    - name: update repo
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+        force_apt_get: true
+
+    - name: install nginx
+      apt:
+        name: nginx=1.23.1-1~jammy
+        update_cache: yes
+        force_apt_get: yes
+
+    - name: Install MariaDB Server 10.9
+      apt: name=mariadb-server update_cache=yes
+
+    - name: Install MariaDB Client 10.9
+      apt: name=mariadb-client update_cache=yes
+
+    - name: Start Nginx
+      service: name=nginx state=started enabled=yes
+
+    - name: Start MariaDB Server 10.9
+      service: name=mariadb state=started enabled=yes
